@@ -3,19 +3,35 @@ from classifiers.naive_bayes import NaiveBayes
 from evaluation.accuracy import print_accuracy
 from evaluation.confusion_matrix import confusion_matrix, print_confusion_matrix
 from utils.data_preprocess import train_test_split
+from utils.enums import FeatureType
+
 
 def main():
     dataset = np.loadtxt(fname="data/wifi_localization.txt")
     X = dataset[:, 0:-1]
     Y = dataset[:, -1]
+    feature_types = [
+        FeatureType.NUMERICAL.name,
+        FeatureType.NUMERICAL.name,
+        FeatureType.NUMERICAL.name,
+        FeatureType.NUMERICAL.name,
+        FeatureType.NUMERICAL.name,
+        FeatureType.NUMERICAL.name,
+        FeatureType.NUMERICAL.name,
+    ]
     classes = np.unique(Y)
 
     train_X, train_Y, test_X, test_Y = train_test_split(
-        X = X, Y = Y, unique_classes = classes
+        X=X, Y=Y, unique_classes=classes
     )
     classifier = NaiveBayes()
 
-    classifier.train(train_X=train_X, train_Y=train_Y)
+    trainStatus = classifier.train(
+        train_X=train_X, train_Y=train_Y, feature_types=feature_types
+    )
+
+    if trainStatus == False:
+        return
 
     pred_Y = classifier.test(test_X)
 
