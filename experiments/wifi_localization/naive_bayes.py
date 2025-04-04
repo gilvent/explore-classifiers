@@ -1,7 +1,7 @@
 import numpy as np
 from classifiers.naive_bayes import NaiveBayes
 from evaluation.accuracy import print_accuracy
-
+from evaluation.confusion_matrix import confusion_matrix, print_confusion_matrix
 
 def train_test_split(X, Y):
     classes = [1, 2, 3, 4]
@@ -32,11 +32,15 @@ def main():
     )
     classifier = NaiveBayes()
 
-    classifier.train(inputs_data=train_X, outputs=train_Y)
+    classifier.train(train_X=train_X, train_Y=train_Y)
 
     pred_Y = classifier.test(test_X)
 
-    print_accuracy(test_Y, pred_Y)
+    print_accuracy(actual_Y=test_Y, pred_Y=pred_Y)
+
+    classes = np.unique(test_Y)
+    conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
+    print_confusion_matrix(conf_matrix=conf_matrix, classes=classes)
 
 
 if __name__ == "__main__":
