@@ -13,6 +13,11 @@ class NaiveBayes:
         return coefficient * exponent
 
     def __category_probability_in_class(self, feature_index, cls, x):
+        # if the key is not in the map, it means the value of this feature has no occurence in this class during training
+
+        if (feature_index, cls, x) not in self.categorical_feature_freq:
+            return 0
+
         return (
             self.categorical_feature_freq[(feature_index, cls, x)]
             / self.class_freq[cls]
@@ -33,7 +38,9 @@ class NaiveBayes:
                     posterior *= self.__gaussian_pdf(mean, std, x)
 
                 if self.feature_types[feature_index] == FeatureType.CATEGORICAL.name:
-                    posterior *= self.__category_probability_in_class(feature_index, cl, x)
+                    posterior *= self.__category_probability_in_class(
+                        feature_index, cl, x
+                    )
 
             all_posteriors.append(posterior)
 
@@ -47,10 +54,9 @@ class NaiveBayes:
         if len(train_Y) <= 0:
             print("Training failed: Output data required")
             return False
-        if (len(train_X[0]) != len(feature_types)):
+        if len(train_X[0]) != len(feature_types):
             print("Type for each feature required")
             return False
-        
 
         self.classes = np.unique(train_Y)
         self.feature_types = feature_types
