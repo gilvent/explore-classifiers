@@ -4,6 +4,7 @@ from evaluation.accuracy import print_accuracy
 from evaluation.confusion_matrix import confusion_matrix, print_confusion_matrix
 from utils.data_preprocess import train_test_split
 from utils.enums import FeatureType
+from evaluation.roc_curve import print_roc_curve, predictions_by_threshold
 
 
 def main():
@@ -19,21 +20,21 @@ def main():
 
     # Since all target > 0 is classified as having heart disease, we convert the value into 1
     Y[Y > 0] = 1
-    
+
     feature_types = [
-        FeatureType.NUMERICAL.name, # age
-        FeatureType.CATEGORICAL.name, # sex
-        FeatureType.CATEGORICAL.name, # cp
-        FeatureType.NUMERICAL.name, # trestbps
-        FeatureType.NUMERICAL.name, # chol
-        FeatureType.CATEGORICAL.name, # fbs
-        FeatureType.CATEGORICAL.name, # restecg
-        FeatureType.NUMERICAL.name, # thalach
-        FeatureType.CATEGORICAL.name, # exang
-        FeatureType.NUMERICAL.name, # oldpeak
-        FeatureType.CATEGORICAL.name, # slope
-        FeatureType.NUMERICAL.name, # ca	
-        FeatureType.CATEGORICAL.name, # thal
+        FeatureType.NUMERICAL.name,  # age
+        FeatureType.CATEGORICAL.name,  # sex
+        FeatureType.CATEGORICAL.name,  # cp
+        FeatureType.NUMERICAL.name,  # trestbps
+        FeatureType.NUMERICAL.name,  # chol
+        FeatureType.CATEGORICAL.name,  # fbs
+        FeatureType.CATEGORICAL.name,  # restecg
+        FeatureType.NUMERICAL.name,  # thalach
+        FeatureType.CATEGORICAL.name,  # exang
+        FeatureType.NUMERICAL.name,  # oldpeak
+        FeatureType.CATEGORICAL.name,  # slope
+        FeatureType.NUMERICAL.name,  # ca
+        FeatureType.CATEGORICAL.name,  # thal
     ]
     classes = np.unique(Y)
 
@@ -51,11 +52,33 @@ def main():
         return
 
     pred_Y = classifier.test(test_X)
-
     print_accuracy(actual_Y=test_Y, pred_Y=pred_Y)
-
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
     print_confusion_matrix(conf_matrix=conf_matrix, classes=classes)
+
+    affirmative_class_posteriors = classifier.posterior_probabilities(
+        test_X=test_X, target_class=classes[np.where(classes == 1)][0]
+    )
+
+    tpr = []
+    fpr = []
+
+    for t in np.arange(0, 1, 0.1):
+        print(t)
+        thresholded_pred = predictions_by_threshold(
+            probabilities=affirmative_class_posteriors, threshold=t
+        )
+        conf_matrix = confusion_matrix(
+            classes=classes, actual_Y=test_Y, pred_Y=thresholded_pred
+        )
+        tp = conf_matrix[1][1]
+        fp = conf_matrix[0][1]
+        tn = conf_matrix[0][0]
+        fn = conf_matrix[1][0]
+        tpr.append(tp / (tp + fn))
+        fpr.append(fp / (fp + tn))
+
+    print_roc_curve(fpr, tpr)
 
 
 if __name__ == "__main__":

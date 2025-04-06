@@ -12,7 +12,7 @@ class NaiveBayes:
         exponent = math.exp(-1 / (2 * variance) * math.pow(x - mean, 2))
         return coefficient * exponent
 
-    def __category_probability_in_class(self, feature_index, cls, x):
+    def __probability_by_frequency(self, feature_index, cls, x):
         # if the key is not in the map, it means the value of this feature has no occurence in this class during training
 
         if (feature_index, cls, x) not in self.categorical_feature_freq:
@@ -23,25 +23,50 @@ class NaiveBayes:
             / self.class_freq[cls]
         )
 
+    def __likelihood(self, target_class, feature_index, x):
+        if self.feature_types[feature_index] == FeatureType.NUMERICAL.name:
+            mean, std = self.pdf_params[(feature_index, target_class)]
+            return self.__gaussian_pdf(mean, std, x)
+
+        if self.feature_types[feature_index] == FeatureType.CATEGORICAL.name:
+            return self.__probability_by_frequency(feature_index, target_class, x)
+
+        return 0
+
+    def __scaling_factor(self, nd_inputs):
+        scaling_factor = 0
+
+        for cl in self.classes:
+            map_key = tuple([cl] + nd_inputs)
+            scaling_factor += (
+                self.priori_probabilities[cl] * self.nd_inputs_likelihood[map_key]
+            )
+
+        return scaling_factor
+
     # nd_inputs = n-dimension inputs, a tuple of input values for multiple features
     def __classify(self, nd_inputs: tuple):
         all_posteriors = []
 
         # Calculate posterior probability for each class
         for cl in self.classes:
-            posterior = self.priori_probabilities[cl]
+            likelihood_product = 1
 
-            # Multiply p(x|w) for each feature in the given class
+            # Multiply likelihoods when there are multple features
             for feature_index, x in enumerate(nd_inputs):
-                if self.feature_types[feature_index] == FeatureType.NUMERICAL.name:
-                    mean, std = self.pdf_params[(feature_index, cl)]
-                    posterior *= self.__gaussian_pdf(mean, std, x)
+                likelihood = self.__likelihood(
+                    target_class=cl, feature_index=feature_index, x=x
+                )
+                likelihood_product *= likelihood
 
-                if self.feature_types[feature_index] == FeatureType.CATEGORICAL.name:
-                    posterior *= self.__category_probability_in_class(
-                        feature_index, cl, x
-                    )
+            # Memoize the likelihood product for scaling factor calculation
+            map_key = tuple([cl] + nd_inputs)
+            self.nd_inputs_likelihood[map_key] = likelihood_product
 
+            # The actual Posterior Probability requires division by Scaling Factor.
+            # We ignore Scaling Factor because we only want to compare the result between classes,
+            # and the scaling factor will be the same for all classes
+            posterior = self.priori_probabilities[cl] * likelihood_product
             all_posteriors.append(posterior)
 
         # Get the index of max posterior and return associated class
@@ -65,6 +90,7 @@ class NaiveBayes:
         self.categorical_feature_freq = {}
         self.priori_probabilities = {}
         self.class_freq = {}
+        self.nd_inputs_likelihood = {}
 
         # Calculate parameters for probability distribution function
         for cl in self.classes:
@@ -111,3 +137,23 @@ class NaiveBayes:
             predictions.append(prediction)
 
         return predictions
+
+    def posterior_probabilities(self, test_X: np.ndarray, target_class: float):
+        if len(self.nd_inputs_likelihood) <= 0:
+            print("Please run test() first")
+            return []
+
+        posteriors = []
+
+        for nd_inputs in test_X:
+            map_key = tuple([target_class] + nd_inputs)
+
+            posterior = (
+                self.priori_probabilities[target_class]
+                * self.nd_inputs_likelihood[map_key]
+                / self.__scaling_factor(nd_inputs=nd_inputs)
+            )
+
+            posteriors.append(posterior)
+
+        return posteriors
