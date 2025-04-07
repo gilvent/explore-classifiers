@@ -15,11 +15,11 @@ class NaiveBayes:
     def __probability_by_frequency(self, feature_index, cls, x):
         # if the key is not in the map, it means the value of this feature has no occurence in this class during training
 
-        if (feature_index, cls, x) not in self.categorical_feature_freq:
+        if (feature_index, cls, x) not in self.feature_freq:
             return 0
 
         return (
-            self.categorical_feature_freq[(feature_index, cls, x)]
+            self.feature_freq[(feature_index, cls, x)]
             / self.class_freq[cls]
         )
 
@@ -39,7 +39,7 @@ class NaiveBayes:
         for cl in self.classes:
             map_key = tuple([cl] + nd_inputs)
             scaling_factor += (
-                self.priori_probabilities[cl] * self.nd_inputs_likelihood[map_key]
+                self.prioris[cl] * self.nd_inputs_likelihood[map_key]
             )
 
         return scaling_factor
@@ -66,7 +66,7 @@ class NaiveBayes:
             # The actual Posterior Probability requires division by Scaling Factor.
             # We ignore Scaling Factor because we only want to compare the result between classes,
             # and the scaling factor will be the same for all classes
-            posterior = self.priori_probabilities[cl] * likelihood_product
+            posterior = self.prioris[cl] * likelihood_product
             all_posteriors.append(posterior)
 
         # Get the index of max posterior and return associated class
@@ -85,16 +85,15 @@ class NaiveBayes:
 
         self.classes = np.unique(train_Y)
         self.feature_types = feature_types
-        self.training_train_X = train_X
         self.pdf_params = {}
-        self.categorical_feature_freq = {}
-        self.priori_probabilities = {}
+        self.feature_freq = {}
+        self.prioris = {}
         self.class_freq = {}
         self.nd_inputs_likelihood = {}
 
         # Calculate parameters for probability distribution function
         for cl in self.classes:
-            rows_with_cl_output = self.training_train_X[train_Y == cl]
+            rows_with_cl_output = train_X[train_Y == cl]
             transposed_rows = np.transpose(rows_with_cl_output)
 
             for feature_index, values in enumerate(transposed_rows):
@@ -111,10 +110,10 @@ class NaiveBayes:
                 # Store the frequency of each category in given class
                 if feature_types[feature_index] == FeatureType.CATEGORICAL.name:
                     for val in values:
-                        if (feature_index, cl, val) in self.categorical_feature_freq:
-                            self.categorical_feature_freq[(feature_index, cl, val)] += 1
+                        if (feature_index, cl, val) in self.feature_freq:
+                            self.feature_freq[(feature_index, cl, val)] += 1
                         else:
-                            self.categorical_feature_freq[(feature_index, cl, val)] = 1
+                            self.feature_freq[(feature_index, cl, val)] = 1
 
         # Count the classes frequency for priori probabilities P(Y)
         for cl in train_Y:
@@ -125,7 +124,7 @@ class NaiveBayes:
 
         # Calculate priori probabilities for each class
         for cl in self.classes:
-            self.priori_probabilities[cl] = self.class_freq[cl] / len(train_Y)
+            self.prioris[cl] = self.class_freq[cl] / len(train_Y)
 
         return True
 
@@ -149,7 +148,7 @@ class NaiveBayes:
             map_key = tuple([target_class] + nd_inputs)
 
             posterior = (
-                self.priori_probabilities[target_class]
+                self.prioris[target_class]
                 * self.nd_inputs_likelihood[map_key]
                 / self.__scaling_factor(nd_inputs=nd_inputs)
             )
