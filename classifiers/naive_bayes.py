@@ -5,7 +5,7 @@ from utils.enums import FeatureType
 
 class NaiveBayes:
 
-    # Use 1-D Gaussian PDF
+    # Use 1-D Gaussian PDF formula
     def __gaussian_pdf(self, mean: float, std: float, x: float):
         coefficient = 1 / (math.sqrt(2 * math.pi) * std)
         variance = math.pow(std, 2)
@@ -13,15 +13,11 @@ class NaiveBayes:
         return coefficient * exponent
 
     def __probability_by_frequency(self, feature_index, cls, x):
-        # if the key is not in the map, it means the value of this feature has no occurence in this class during training
-
+        # If the key is not in the map, then this feature has no occurence in this class during training.
         if (feature_index, cls, x) not in self.feature_freq:
             return 0
 
-        return (
-            self.feature_freq[(feature_index, cls, x)]
-            / self.class_freq[cls]
-        )
+        return self.feature_freq[(feature_index, cls, x)] / self.class_freq[cls]
 
     def __likelihood(self, target_class, feature_index, x):
         if self.feature_types[feature_index] == FeatureType.NUMERICAL.name:
@@ -33,19 +29,19 @@ class NaiveBayes:
 
         return 0
 
-    def __scaling_factor(self, nd_inputs):
+    def __scaling_factor(self, nd_features):
         scaling_factor = 0
 
         for cl in self.classes:
-            map_key = tuple([cl] + nd_inputs)
-            scaling_factor += (
-                self.prioris[cl] * self.nd_inputs_likelihood[map_key]
+            map_key = self.__get_likelihoods_map_key(
+                target_class=cl, nd_features=nd_features
             )
+            scaling_factor += self.prioris[cl] * self.calculated_likelihoods[map_key]
 
         return scaling_factor
 
-    # nd_inputs = n-dimension inputs, a tuple of input values for multiple features
-    def __classify(self, nd_inputs: tuple):
+    # nd_features = n-dimension features, a tuple of multiple features for single prediction
+    def __classify(self, nd_features: tuple):
         all_posteriors = []
 
         # Calculate posterior probability for each class
@@ -53,15 +49,17 @@ class NaiveBayes:
             likelihood_product = 1
 
             # Multiply likelihoods when there are multple features
-            for feature_index, x in enumerate(nd_inputs):
+            for feature_index, x in enumerate(nd_features):
                 likelihood = self.__likelihood(
                     target_class=cl, feature_index=feature_index, x=x
                 )
                 likelihood_product *= likelihood
 
-            # Memoize the likelihood product for scaling factor calculation
-            map_key = tuple([cl] + nd_inputs)
-            self.nd_inputs_likelihood[map_key] = likelihood_product
+            # Store the likelihood product for scaling factor calculation
+            map_key = self.__get_likelihoods_map_key(
+                target_class=cl, nd_features=nd_features
+            )
+            self.calculated_likelihoods[map_key] = likelihood_product
 
             # The actual Posterior Probability requires division by Scaling Factor.
             # We ignore Scaling Factor because we only want to compare the result between classes,
@@ -71,6 +69,9 @@ class NaiveBayes:
 
         # Get the index of max posterior and return associated class
         return self.classes[np.argmax(all_posteriors)]
+
+    def __get_likelihoods_map_key(self, target_class, nd_features):
+        return tuple([target_class] + nd_features)
 
     def train(self, train_X: np.ndarray, train_Y: np.ndarray, feature_types: list):
         if len(train_X) <= 0:
@@ -89,7 +90,7 @@ class NaiveBayes:
         self.feature_freq = {}
         self.prioris = {}
         self.class_freq = {}
-        self.nd_inputs_likelihood = {}
+        self.calculated_likelihoods = {}
 
         # Calculate parameters for probability distribution function
         for cl in self.classes:
@@ -131,26 +132,28 @@ class NaiveBayes:
     def test(self, test_X: np.ndarray):
         predictions = []
 
-        for nd_inputs in test_X:
-            prediction = self.__classify(nd_inputs)
+        for nd_features in test_X:
+            prediction = self.__classify(nd_features)
             predictions.append(prediction)
 
         return predictions
 
     def posterior_probabilities(self, test_X: np.ndarray, target_class: float):
-        if len(self.nd_inputs_likelihood) <= 0:
+        if len(self.calculated_likelihoods) <= 0:
             print("Please run test() first")
             return []
 
         posteriors = []
 
-        for nd_inputs in test_X:
-            map_key = tuple([target_class] + nd_inputs)
+        for nd_features in test_X:
+            map_key = self.__get_likelihoods_map_key(
+                target_class=target_class, nd_features=nd_features
+            )
 
             posterior = (
                 self.prioris[target_class]
-                * self.nd_inputs_likelihood[map_key]
-                / self.__scaling_factor(nd_inputs=nd_inputs)
+                * self.calculated_likelihoods[map_key]
+                / self.__scaling_factor(nd_features=nd_features)
             )
 
             posteriors.append(posterior)
