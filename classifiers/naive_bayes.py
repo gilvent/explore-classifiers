@@ -13,9 +13,10 @@ class NaiveBayes:
         return coefficient * exponent
 
     def __probability_by_frequency(self, feature_index, cls, x):
-        # If the key is not in the map, then this feature has no occurence in this class during training.
+        # If the key does not exist, then this feature has no occurence in this class during training.
+        # However, we just assume a very low probability for this feature so that the entire probability is not nullified.
         if (feature_index, cls, x) not in self.feature_freq:
-            return 0
+            return 0.00000000001
 
         return self.feature_freq[(feature_index, cls, x)] / self.class_freq[cls]
 

@@ -52,19 +52,24 @@ def main():
         return
 
     pred_Y = classifier.test(test_X)
+
+    # Prediction accuracy on test data
     print_accuracy(actual_Y=test_Y, pred_Y=pred_Y)
+
+    # Confusion matrix on test data
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
     print_confusion_matrix(conf_matrix=conf_matrix, classes=classes)
 
+
+    # ROC Curve
+    # We use posterior probabilities for affirmative class (where heart disease classified as PRESENT)
     affirmative_class_posteriors = classifier.posterior_probabilities(
         test_X=test_X, target_class=classes[np.where(classes == 1)][0]
     )
-
     tpr = []
     fpr = []
 
-    for t in np.arange(0, 1, 0.1):
-        print(t)
+    for t in np.arange(0, 1, 0.01):
         thresholded_pred = predictions_by_threshold(
             probabilities=affirmative_class_posteriors, threshold=t
         )
