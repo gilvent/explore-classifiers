@@ -69,7 +69,7 @@ def main():
     tpr = []
     fpr = []
 
-    for t in np.arange(0, 1, 0.01):
+    for t in np.arange(0, 1.05, 0.05):
         thresholded_pred = predictions_by_threshold(
             probabilities=affirmative_class_posteriors, threshold=t
         )
@@ -80,9 +80,11 @@ def main():
         fp = conf_matrix[0][1]
         tn = conf_matrix[0][0]
         fn = conf_matrix[1][0]
+
         tpr.append(tp / (tp + fn))
         fpr.append(fp / (fp + tn))
 
+    
     print_roc_curve(fpr, tpr)
 
 
