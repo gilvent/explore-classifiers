@@ -10,7 +10,7 @@ class LogisticRegression:
         self.loss_records = []
 
     def __sigmoid(self, features_vector):
-        z = np.sum([x * w for x, w in zip(features_vector, self.weights)])
+        z = np.sum([x * w + self.bias for x, w in zip(features_vector, self.weights)])
         return 1 / (1 + np.exp(-1 * z))
 
     def __cross_entropy_loss(self, actual_Y: np.ndarray, pred_Y_pbb: np.ndarray):
