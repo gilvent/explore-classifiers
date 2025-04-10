@@ -29,10 +29,13 @@ def main():
     weights = np.asarray([0 for _ in range(0, train_X.shape[1])])
     model = LogisticRegression(weights=weights)
 
-    model.train(train_X=train_X, train_Y=train_Y, iterations=3800)
+    model.train(train_X=train_X, train_Y=train_Y, iterations=3000)
 
-    pred_probabilities = model.predict(test_X=test_X)
-    pred_Y = predictions_by_threshold(probabilities=pred_probabilities, threshold=0.5)
+    # Output the result
+    output = model.output(threshold=0.5, test_X=test_X)
+    pred_probabilities = output["pred_probabilities"]
+    pred_Y = output["pred_result"]
+
 
     # Confusion matrix
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
@@ -50,7 +53,7 @@ def main():
     tpr = []
     fpr = []
 
-    for t in np.arange(0, 1.05, 0.05):
+    for t in np.arange(0, 1.1, 0.05):
         thresholded_pred = predictions_by_threshold(
             probabilities=pred_probabilities, threshold=t
         )
