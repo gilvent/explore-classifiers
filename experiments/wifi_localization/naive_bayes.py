@@ -11,6 +11,9 @@ def main():
     dataset = np.loadtxt(fname="data/wifi_localization.txt")
     X = dataset[:, 0:-1]
     Y = dataset[:, -1]
+
+    # Initialize the classifier
+    classes = np.unique(Y)
     feature_types = [
         FeatureType.NUMERICAL.name,
         FeatureType.NUMERICAL.name,
@@ -20,22 +23,17 @@ def main():
         FeatureType.NUMERICAL.name,
         FeatureType.NUMERICAL.name,
     ]
-    classes = np.unique(Y)
+    classifier = NaiveBayes(unique_classes=classes, feature_types=feature_types)
 
+    # Fit train data to the model
     train_X, train_Y, test_X, test_Y = shuffle_train_test_split(
         X=X, Y=Y, test_split_ratio=0.8
     )
-
-    classifier = NaiveBayes()
-
-    trainStatus = classifier.train(
-        train_X=train_X, train_Y=train_Y, feature_types=feature_types
-    )
-
-    if trainStatus == False:
-        return
+    classifier.train(train_X=train_X, train_Y=train_Y)
 
     pred_Y = classifier.test(test_X)
+
+    # Display Confusion Matrix
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
     accuracy = accuracy_score(actual_Y=test_Y, pred_Y=pred_Y)
 

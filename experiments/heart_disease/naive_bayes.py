@@ -7,6 +7,7 @@ from utils.enums import FeatureType
 from utils.display_helpers import to_accuracy_text
 from evaluation.roc_curve import print_roc_curve, predictions_by_threshold
 
+
 def main():
     dataset = np.loadtxt(
         fname="data/heart_disease_cleveland_processed.txt", delimiter=",", dtype=str
@@ -21,6 +22,8 @@ def main():
     # Since all target > 0 is classified as having heart disease, we convert the value into 1
     Y[Y > 0] = 1
 
+    # Initialize the model
+    classes = np.unique(Y)
     feature_types = [
         FeatureType.NUMERICAL.name,  # age
         FeatureType.CATEGORICAL.name,  # sex
@@ -36,20 +39,13 @@ def main():
         FeatureType.NUMERICAL.name,  # ca
         FeatureType.CATEGORICAL.name,  # thal
     ]
-    classes = np.unique(Y)
+    classifier = NaiveBayes(unique_classes=classes, feature_types=feature_types)
 
+    # Fit to the model
     train_X, train_Y, test_X, test_Y = train_test_split(
         X=X, Y=Y, unique_classes=classes
     )
-
-    classifier = NaiveBayes()
-
-    trainStatus = classifier.train(
-        train_X=train_X, train_Y=train_Y, feature_types=feature_types
-    )
-
-    if trainStatus == False:
-        return
+    classifier.train(train_X=train_X, train_Y=train_Y)
 
     pred_Y = classifier.test(test_X)
 

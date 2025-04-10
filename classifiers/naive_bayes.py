@@ -5,6 +5,10 @@ from utils.enums import FeatureType
 
 class NaiveBayes:
 
+    def __init__(self, feature_types: list, unique_classes):
+        self.feature_types = feature_types
+        self.classes = unique_classes
+
     # Use 1-D Gaussian PDF formula
     def __gaussian_pdf(self, mean: float, std: float, x: float):
         coefficient = 1 / (math.sqrt(2 * math.pi) * std)
@@ -74,19 +78,14 @@ class NaiveBayes:
     def __get_likelihoods_map_key(self, target_class, nd_features):
         return tuple([target_class] + nd_features)
 
-    def train(self, train_X: np.ndarray, train_Y: np.ndarray, feature_types: list):
+    def train(self, train_X: np.ndarray, train_Y: np.ndarray):
         if len(train_X) <= 0:
             print("Training failed: Input data required")
             return False
         if len(train_Y) <= 0:
             print("Training failed: Output data required")
             return False
-        if len(train_X[0]) != len(feature_types):
-            print("Type for each feature required")
-            return False
 
-        self.classes = np.unique(train_Y)
-        self.feature_types = feature_types
         self.pdf_params = {}
         self.feature_freq = {}
         self.prioris = {}
@@ -102,7 +101,7 @@ class NaiveBayes:
 
                 # For numerical feature:
                 # Store the mean and standard deviation in given class
-                if feature_types[feature_index] == FeatureType.NUMERICAL.name:
+                if self.feature_types[feature_index] == FeatureType.NUMERICAL.name:
                     self.pdf_params[(feature_index, cl)] = (
                         np.mean(values),
                         np.std(values),
@@ -110,7 +109,7 @@ class NaiveBayes:
 
                 # For categorical feature:
                 # Store the frequency of each category in given class
-                if feature_types[feature_index] == FeatureType.CATEGORICAL.name:
+                if self.feature_types[feature_index] == FeatureType.CATEGORICAL.name:
                     for val in values:
                         if (feature_index, cl, val) in self.feature_freq:
                             self.feature_freq[(feature_index, cl, val)] += 1
