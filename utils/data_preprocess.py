@@ -1,5 +1,5 @@
 import numpy as np
-
+from datetime import datetime
 
 def train_test_split(
     X: np.ndarray, Y: np.ndarray, unique_classes, test_split_ratio=0.3
@@ -40,3 +40,12 @@ def shuffle_train_test_split(X: np.ndarray, Y: np.ndarray, test_split_ratio=0.3)
     test_Y = shuffled_Y[split_index:]
 
     return (train_X, train_Y, test_X, test_Y)
+
+def to_seconds_since_midnight(datestr, format = '%Y-%m-%d %H:%M:%S'):
+    dt = datetime.strptime(datestr, format)
+
+    time_since_midnight = dt - dt.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # Value is normalized by dividing with total seconds in a day
+    seconds = time_since_midnight.total_seconds() / 86.400
+    return round(float(seconds))
