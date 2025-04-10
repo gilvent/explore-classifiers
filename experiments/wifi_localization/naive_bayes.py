@@ -2,7 +2,7 @@ import numpy as np
 from classifiers.naive_bayes import NaiveBayes
 from evaluation.accuracy import accuracy_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
-from utils.data_preprocess import train_test_split
+from utils.data_preprocess import train_test_split, shuffle_train_test_split
 from utils.enums import FeatureType
 from utils.display_helpers import to_accuracy_text
 
@@ -22,9 +22,10 @@ def main():
     ]
     classes = np.unique(Y)
 
-    train_X, train_Y, test_X, test_Y = train_test_split(
-        X=X, Y=Y, unique_classes=classes
+    train_X, train_Y, test_X, test_Y = shuffle_train_test_split(
+        X=X, Y=Y, test_split_ratio=0.8
     )
+
     classifier = NaiveBayes()
 
     trainStatus = classifier.train(
@@ -39,7 +40,10 @@ def main():
     accuracy = accuracy_score(actual_Y=test_Y, pred_Y=pred_Y)
 
     display_confusion_matrix(
-        conf_matrix=conf_matrix, classes=classes, info=to_accuracy_text(accuracy=accuracy)
+        conf_matrix=conf_matrix,
+        classes=classes,
+        title="Wifi Localization/Naive Bayes (0.8 test split ratio)",
+        info=to_accuracy_text(accuracy=accuracy),
     )
 
 

@@ -2,7 +2,7 @@ import numpy as np
 from classifiers.multinominal_logistic_regression import MultinominalLogisticRegression
 from evaluation.accuracy import accuracy_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
-from utils.data_preprocess import train_test_split
+from utils.data_preprocess import train_test_split, shuffle_train_test_split
 from utils.display_helpers import to_accuracy_text
 
 
@@ -12,8 +12,9 @@ def main():
     Y = dataset[:, -1]
 
     classes = np.sort(np.unique(Y))
-    train_X, train_Y, test_X, test_Y = train_test_split(
-        X=X, Y=Y, unique_classes=classes
+
+    train_X, train_Y, test_X, test_Y = shuffle_train_test_split(
+        X=X, Y=Y, test_split_ratio=0.5
     )
 
     # Initialize the model
@@ -23,7 +24,10 @@ def main():
         weights=weights, bias=bias, unique_classes=classes
     )
 
-    model.train(train_X=train_X, train_Y=train_Y, iterations=500)
+    # Train the model
+    model.train(train_X=train_X, train_Y=train_Y, iterations=500, print_losses=False)
+
+    print(model.weights)
 
     pred_probabilities = model.predict(test_X=test_X)
     pred_Y = [classes[np.argmax(pbb)] for pbb in pred_probabilities]
@@ -32,10 +36,10 @@ def main():
     header_labels = ["Actual Y", "Prediction"] + [str(c) for c in classes]
     template = " ".join(["%12s"] * len(header_labels))
     headers = template % tuple(header_labels)
-    print(headers)
-    for i, y in enumerate(test_Y):
-        row = (y, pred_Y[i]) + tuple(pred_probabilities[i])
-        print(" ".join(["%12.2f"] * len(row)) % tuple(row))
+    # print(headers)
+    # for i, y in enumerate(test_Y):
+    #     row = (y, pred_Y[i]) + tuple(pred_probabilities[i])
+    #     print(" ".join(["%12.2f"] * len(row)) % tuple(row))
 
     # Confusion Matrix
     accuracy = accuracy_score(actual_Y=test_Y, pred_Y=pred_Y)
@@ -44,6 +48,7 @@ def main():
     display_confusion_matrix(
         conf_matrix=conf_matrix,
         classes=classes,
+        title="Wifi Localization/Logistic Regression (0.3 test split ratio)",
         info=to_accuracy_text(accuracy=accuracy),
     )
 

@@ -50,7 +50,7 @@ class MultinominalLogisticRegression:
 
         return total_loss / len(clipped_softmax_X)
 
-    def train(self, train_X: np.ndarray, train_Y: np.ndarray, iterations=5):
+    def train(self, train_X: np.ndarray, train_Y: np.ndarray, iterations=5, print_losses=True):
 
         for index in range(0, iterations):
             scores = np.asarray([self.__scores(features_vector=f) for f in train_X])
@@ -59,7 +59,9 @@ class MultinominalLogisticRegression:
                 actual_Y=train_Y, softmax_X=self.softmax_X
             )
             self.loss_records.append(avg_cross_entropy_loss)
-            print("Iteration", index, "Loss: ", avg_cross_entropy_loss)
+
+            if (print_losses == True):
+                print("Iteration", index, "Loss: ", avg_cross_entropy_loss)
 
             # Iterative optimization
 
