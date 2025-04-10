@@ -25,13 +25,13 @@ def area_under_curve(sorted_fpr, sorted_tpr):
     return total_area
 
 
-def print_roc_curve(fpr, tpr):
+def print_roc_curve(fpr, tpr, title="ROC Curve"):
     sorted_indices = np.argsort(fpr)
     sorted_fpr = np.array(fpr)[sorted_indices]
     sorted_tpr = np.array(tpr)[sorted_indices]
     auc = area_under_curve(sorted_fpr=sorted_fpr, sorted_tpr=sorted_tpr)
 
-    plt.title("Receiver Operating Characteristic (ROC) Curve")
+    plt.title(title)
     plt.plot(sorted_fpr, sorted_tpr, "b", label="AUC = %0.2f" % auc)
     plt.legend(loc="lower right")
     plt.plot([0, 1], [0, 1], "r--")

@@ -2,7 +2,7 @@ import numpy as np
 from classifiers.naive_bayes import NaiveBayes
 from evaluation.accuracy import accuracy_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
-from utils.data_preprocess import train_test_split
+from utils.data_preprocess import train_test_split, shuffle_train_test_split
 from utils.enums import FeatureType
 from utils.display_helpers import to_accuracy_text
 from evaluation.roc_curve import print_roc_curve, predictions_by_threshold
@@ -42,9 +42,7 @@ def main():
     classifier = NaiveBayes(unique_classes=classes, feature_types=feature_types)
 
     # Fit to the model
-    train_X, train_Y, test_X, test_Y = train_test_split(
-        X=X, Y=Y, unique_classes=classes
-    )
+    train_X, train_Y, test_X, test_Y = shuffle_train_test_split(X=X, Y=Y)
     classifier.train(train_X=train_X, train_Y=train_Y)
 
     pred_Y = classifier.test(test_X)
@@ -56,6 +54,7 @@ def main():
     display_confusion_matrix(
         conf_matrix=conf_matrix,
         classes=classes,
+        title="Heart Disease/Naive Bayes",
         info=to_accuracy_text(accuracy=accuracy),
     )
 
