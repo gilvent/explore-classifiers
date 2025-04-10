@@ -1,8 +1,9 @@
 import numpy as np
 from classifiers.logistic_regression import LogisticRegression
-from evaluation.accuracy import print_accuracy
-from evaluation.confusion_matrix import confusion_matrix, print_confusion_matrix
+from evaluation.accuracy import accuracy_score
+from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
 from utils.data_preprocess import train_test_split
+from utils.display_helpers import to_accuracy_text
 from evaluation.roc_curve import print_roc_curve, predictions_by_threshold
 
 
@@ -31,18 +32,19 @@ def main():
 
     model.train(train_X=train_X, train_Y=train_Y, iterations=4000)
 
-    print("Weights", model.weights)
-    print("Bias", model.bias)
-
     pred_probabilities = model.predict(test_X=test_X)
     pred_Y = predictions_by_threshold(probabilities=pred_probabilities, threshold=0.5)
 
-    # Prediction accuracy on test data
-    print_accuracy(actual_Y=test_Y, pred_Y=pred_Y)
-
-    # Confusion matrix on test data
+    # Confusion matrix
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
-    print_confusion_matrix(conf_matrix=conf_matrix, classes=classes)
+    accuracy = accuracy_score(actual_Y=test_Y, pred_Y=pred_Y)
+
+    display_confusion_matrix(
+        conf_matrix=conf_matrix,
+        classes=classes,
+        title="Logistic Regression on Heart Disease Dataset",
+        info=to_accuracy_text(accuracy=accuracy),
+    )
 
     # ROC Curve
     # We use posterior probabilities for affirmative class (where heart disease classified as PRESENT)

@@ -1,8 +1,9 @@
 import numpy as np
 from classifiers.multinominal_logistic_regression import MultinominalLogisticRegression
-from evaluation.accuracy import print_accuracy
-from evaluation.confusion_matrix import confusion_matrix, print_confusion_matrix
+from evaluation.accuracy import accuracy_score
+from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
 from utils.data_preprocess import train_test_split
+from utils.display_helpers import to_accuracy_text
 
 
 def main():
@@ -15,9 +16,9 @@ def main():
         X=X, Y=Y, unique_classes=classes
     )
 
+    # Initialize the model
     weights = np.asarray([[0 for _ in classes] for _ in range(0, train_X.shape[1])])
     bias = np.asarray([0.05 for _ in classes])
-
     model = MultinominalLogisticRegression(
         weights=weights, bias=bias, unique_classes=classes
     )
@@ -26,6 +27,8 @@ def main():
 
     pred_probabilities = model.predict(test_X=test_X)
     pred_Y = [classes[np.argmax(pbb)] for pbb in pred_probabilities]
+
+    # Printing the scores
     header_labels = ["Actual Y", "Prediction"] + [str(c) for c in classes]
     template = " ".join(["%12s"] * len(header_labels))
     headers = template % tuple(header_labels)
@@ -34,12 +37,15 @@ def main():
         row = (y, pred_Y[i]) + tuple(pred_probabilities[i])
         print(" ".join(["%12.2f"] * len(row)) % tuple(row))
 
-    # # Prediction accuracy on test data
-    print_accuracy(actual_Y=test_Y, pred_Y=pred_Y)
-
-    # # Confusion matrix on test data
+    # Confusion Matrix
+    accuracy = accuracy_score(actual_Y=test_Y, pred_Y=pred_Y)
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
-    print_confusion_matrix(conf_matrix=conf_matrix, classes=classes)
+
+    display_confusion_matrix(
+        conf_matrix=conf_matrix,
+        classes=classes,
+        info=to_accuracy_text(accuracy=accuracy),
+    )
 
 
 if __name__ == "__main__":

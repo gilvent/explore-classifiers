@@ -1,9 +1,10 @@
 import numpy as np
 from classifiers.naive_bayes import NaiveBayes
-from evaluation.accuracy import print_accuracy
-from evaluation.confusion_matrix import confusion_matrix, print_confusion_matrix
+from evaluation.accuracy import accuracy_score
+from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
 from utils.data_preprocess import train_test_split
 from utils.enums import FeatureType
+from utils.display_helpers import to_accuracy_text
 
 
 def main():
@@ -34,11 +35,12 @@ def main():
         return
 
     pred_Y = classifier.test(test_X)
-
-    print_accuracy(actual_Y=test_Y, pred_Y=pred_Y)
-
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
-    print_confusion_matrix(conf_matrix=conf_matrix, classes=classes)
+    accuracy = accuracy_score(actual_Y=test_Y, pred_Y=pred_Y)
+
+    display_confusion_matrix(
+        conf_matrix=conf_matrix, classes=classes, info=to_accuracy_text(accuracy=accuracy)
+    )
 
 
 if __name__ == "__main__":
