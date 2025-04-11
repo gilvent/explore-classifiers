@@ -12,7 +12,9 @@ class NaiveBayes:
     # Use 1-D Gaussian PDF formula
     def __gaussian_pdf(self, mean: float, std: float, x: float):
         coefficient = 1 / (math.sqrt(2 * math.pi) * std)
-        variance = math.pow(std, 2)
+        # Prevent division by zero
+        epsilon = 1e-9
+        variance = math.pow(std, 2) + epsilon
         exponent = math.exp(-1 / (2 * variance) * math.pow(x - mean, 2))
         return coefficient * exponent
 

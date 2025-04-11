@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-
 def confusion_matrix(classes, actual_Y, pred_Y):
     counts = {}
     conf_matrix = []
