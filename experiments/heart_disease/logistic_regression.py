@@ -1,9 +1,8 @@
 import numpy as np
 from classifiers.logistic_regression import LogisticRegression
-from evaluation.metrics import accuracy_score
+from evaluation.metrics import accuracy_score, recall_score, precision_score, f1_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
-from utils.data_preprocess import train_test_split, shuffle_train_test_split
-from utils.display_helpers import to_accuracy_text
+from utils.data_preprocess import shuffle_train_test_split
 from evaluation.roc_curve import print_roc_curve, predictions_by_threshold
 
 
@@ -36,16 +35,19 @@ def main():
     pred_probabilities = output["pred_probabilities"]
     pred_Y = output["pred_result"]
 
-
     # Confusion matrix
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
     accuracy = accuracy_score(actual_Y=test_Y, pred_Y=pred_Y)
+    recall = recall_score(tp=conf_matrix[1][1], fn=conf_matrix[1][0])
+    precision = precision_score(tp=conf_matrix[1][1], fp=conf_matrix[0][1])
+    f1 = f1_score(recall=recall, precision=precision)
+    info_text = f"Accuracy: {accuracy:.2f}, F1 Score: {f1:.2f}"
 
     display_confusion_matrix(
         conf_matrix=conf_matrix,
         classes=classes,
         title="Heart Disease Dataset/Logistic Regression",
-        info=to_accuracy_text(accuracy=accuracy),
+        info=info_text,
     )
 
     # ROC Curve

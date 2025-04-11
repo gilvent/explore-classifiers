@@ -1,10 +1,9 @@
 import numpy as np
 from classifiers.naive_bayes import NaiveBayes
-from evaluation.metrics import accuracy_score
+from evaluation.metrics import accuracy_score, f1_score, recall_score, precision_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
-from utils.data_preprocess import train_test_split, shuffle_train_test_split
+from utils.data_preprocess import shuffle_train_test_split
 from utils.enums import FeatureType
-from utils.display_helpers import to_accuracy_text
 from evaluation.roc_curve import print_roc_curve, predictions_by_threshold
 
 
@@ -45,24 +44,28 @@ def main():
     train_X, train_Y, test_X, test_Y = shuffle_train_test_split(X=X, Y=Y)
     classifier.train(train_X=train_X, train_Y=train_Y)
 
-    pred_Y = classifier.test(test_X)
+    output = classifier.output(test_X=test_X)
+    pred_Y = output["predictions"]
 
     # Confusion Matrix
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
     accuracy = accuracy_score(actual_Y=test_Y, pred_Y=pred_Y)
+    recall = recall_score(tp=conf_matrix[1][1], fn=conf_matrix[1][0])
+    precision = precision_score(tp=conf_matrix[1][1], fp=conf_matrix[0][1])
+    f1 = f1_score(recall=recall, precision=precision)
+    info_text = f"Accuracy: {accuracy:.2f}, F1 Score: {f1:.2f}"
 
     display_confusion_matrix(
         conf_matrix=conf_matrix,
         classes=classes,
         title="Heart Disease/Naive Bayes",
-        info=to_accuracy_text(accuracy=accuracy),
+        info=info_text,
     )
 
     # ROC Curve
     # We use posterior probabilities for affirmative class (where heart disease classified as PRESENT)
-    affirmative_class_posteriors = classifier.posterior_probabilities(
-        test_X=test_X, target_class=classes[np.where(classes == 1)][0]
-    )
+    posteriors = np.array(output["posteriors"])
+    affirmative_class_posteriors = posteriors[:, 1]
     tpr = []
     fpr = []
 
