@@ -77,6 +77,16 @@ class NaiveBayes:
         # Get the index of max posterior and return associated class
         return self.classes[np.argmax(all_posteriors)]
 
+    def __inputs_likelihood(self, nd_features, target_class):
+        likelihood_product = 1
+        for feature_index, x in enumerate(nd_features):
+            likelihood = self.__likelihood(
+                target_class=target_class, feature_index=feature_index, x=x
+            )
+            likelihood_product *= likelihood
+
+        return likelihood_product
+
     def __get_likelihoods_map_key(self, target_class, nd_features):
         return tuple([target_class] + nd_features)
 
@@ -91,7 +101,7 @@ class NaiveBayes:
         self.pdf_params = {}
         self.feature_freq = {}
         self.prioris = {}
-        self.class_freq = {}
+        self.class_freq = {cl: 0 for cl in self.classes}
         self.calculated_likelihoods = {}
 
         # Calculate parameters for probability distribution function
@@ -120,10 +130,7 @@ class NaiveBayes:
 
         # Count the classes frequency for priori probabilities P(Y)
         for cl in train_Y:
-            if cl in self.class_freq:
-                self.class_freq[cl] += 1
-            else:
-                self.class_freq[cl] = 1
+            self.class_freq[cl] += 1
 
         # Calculate priori probabilities for each class
         for cl in self.classes:
@@ -161,3 +168,32 @@ class NaiveBayes:
             posteriors.append(posterior)
 
         return posteriors
+
+    def output(self, test_X: np.ndarray):
+        output_data = {"predictions": [], "posteriors": []}
+
+        for nd_features in test_X:
+            posterior_by_class = []
+
+            for cl in self.classes:
+                # Likelihood of inputs in class
+                likelihood_in_class = self.__inputs_likelihood(
+                    nd_features=nd_features, target_class=cl
+                )
+
+                # Store p(x | w) * P(w) for each class
+                posterior_by_class.append(likelihood_in_class * self.prioris[cl])
+
+            # Scaling factor: Sum of (likelihood of inputs * Priori) for all classes
+            scaling_factor = np.sum(posterior_by_class)
+
+            # Compute the posterior probability for each class.
+            # Posterior = Likelihood in class * Priori / Scaling factor
+            posterior_by_class = posterior_by_class / scaling_factor
+
+            output_data["posteriors"].append(posterior_by_class)
+
+            predicted_class = self.classes[np.argmax(posterior_by_class)]
+            output_data["predictions"].append(predicted_class)
+
+        return output_data
