@@ -1,6 +1,6 @@
 import numpy as np
 from classifiers.logistic_regression import LogisticRegression
-from evaluation.accuracy import accuracy_score
+from evaluation.metrics import accuracy_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
 from utils.data_preprocess import (
     to_seconds_since_midnight,

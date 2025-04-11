@@ -1,6 +1,6 @@
 import numpy as np
 from classifiers.naive_bayes import NaiveBayes
-from evaluation.accuracy import accuracy_score
+from evaluation.metrics import accuracy_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
 from utils.data_preprocess import train_test_split, shuffle_train_test_split
 from utils.enums import FeatureType
@@ -40,7 +40,8 @@ def main():
     )
     classifier.train(train_X=train_X, train_Y=train_Y)
 
-    pred_Y = classifier.test(test_X)
+    output = classifier.output(test_X)
+    pred_Y = output["predictions"]
 
     # Display Confusion Matrix
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
