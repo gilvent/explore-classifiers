@@ -1,6 +1,6 @@
 import numpy as np
 from classifiers.naive_bayes import NaiveBayes
-from evaluation.metrics import accuracy_score
+from evaluation.metrics import accuracy_score, recall_score, precision_score, f1_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
 from utils.data_preprocess import (
     to_seconds_since_midnight,
@@ -52,23 +52,27 @@ def main():
 
     classifier.train(train_X=train_X, train_Y=train_Y)
 
-    pred_Y = classifier.test(test_X)
+    output = classifier.output(test_X=test_X)
+    pred_Y = output["predictions"]
 
     # Confusion Matrix
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
     accuracy = accuracy_score(actual_Y=test_Y, pred_Y=pred_Y)
+    recall = recall_score(tp=conf_matrix[1][1], fn=conf_matrix[1][0])
+    precision = precision_score(tp=conf_matrix[1][1], fp=conf_matrix[0][1])
+    f1 = f1_score(recall=recall, precision=precision)
+    info_text = f"Accuracy: {accuracy:.2f}, F1 Score: {f1:.2f}"
 
     display_confusion_matrix(
         conf_matrix=conf_matrix,
         classes=classes,
         title="Room Occupation/Naive Bayes",
-        info=to_accuracy_text(accuracy=accuracy),
+        info=info_text
     )
 
     # ROC Curve
-    affirmative_class_posteriors = classifier.posterior_probabilities(
-        test_X=test_X, target_class=classes[np.where(classes == 1)][0]
-    )
+    posteriors = np.array(output["posteriors"])
+    affirmative_class_posteriors = posteriors[:, 1]
     tpr = []
     fpr = []
 
