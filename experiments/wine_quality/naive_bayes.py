@@ -1,10 +1,9 @@
 import numpy as np
 from classifiers.naive_bayes import NaiveBayes
-from evaluation.metrics import accuracy_score
+from evaluation.metrics import accuracy_score, macro_f1_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
-from utils.data_preprocess import train_test_split, shuffle_train_test_split
+from utils.data_preprocess import shuffle_train_test_split
 from utils.enums import FeatureType
-from utils.display_helpers import to_accuracy_text
 
 
 def main():
@@ -36,7 +35,7 @@ def main():
 
     # Fit training data to the model
     train_X, train_Y, test_X, test_Y = shuffle_train_test_split(
-        X=X, Y=Y, test_split_ratio=0.3
+        X=X, Y=Y, test_split_ratio=0.3, shuffle=False
     )
     classifier.train(train_X=train_X, train_Y=train_Y)
 
@@ -46,13 +45,16 @@ def main():
     # Display Confusion Matrix
     conf_matrix = confusion_matrix(classes=classes, actual_Y=test_Y, pred_Y=pred_Y)
     accuracy = accuracy_score(actual_Y=test_Y, pred_Y=pred_Y)
+    macro_f1 = macro_f1_score(conf_matrix=np.array(conf_matrix))
+    info_text = f"Accuracy: {accuracy:.2f}, Macro F1: {macro_f1:.2f}"
 
     display_confusion_matrix(
         conf_matrix=conf_matrix,
         classes=classes,
-        title="White Wine Quality/Naive Bayes (0.3 test split ratio)",
-        info=to_accuracy_text(accuracy=accuracy),
+        title="White Wine Quality/Naive Bayes",
+        info=info_text,
     )
+    
 
 
 if __name__ == "__main__":
