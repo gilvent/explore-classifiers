@@ -36,47 +36,6 @@ class NaiveBayes:
 
         return 0
 
-    def __scaling_factor(self, nd_features):
-        scaling_factor = 0
-
-        for cl in self.classes:
-            map_key = self.__get_likelihoods_map_key(
-                target_class=cl, nd_features=nd_features
-            )
-            scaling_factor += self.prioris[cl] * self.calculated_likelihoods[map_key]
-
-        return scaling_factor
-
-    # nd_features = n-dimension features, a tuple of multiple features for single prediction
-    def __classify(self, nd_features: tuple):
-        all_posteriors = []
-
-        # Calculate posterior probability for each class
-        for cl in self.classes:
-            likelihood_product = 1
-
-            # Multiply likelihoods when there are multple features
-            for feature_index, x in enumerate(nd_features):
-                likelihood = self.__likelihood(
-                    target_class=cl, feature_index=feature_index, x=x
-                )
-                likelihood_product *= likelihood
-
-            # Store the likelihood product for scaling factor calculation
-            map_key = self.__get_likelihoods_map_key(
-                target_class=cl, nd_features=nd_features
-            )
-            self.calculated_likelihoods[map_key] = likelihood_product
-
-            # The actual Posterior Probability requires division by Scaling Factor.
-            # We ignore Scaling Factor because we only want to compare the result between classes,
-            # and the scaling factor will be the same for all classes
-            posterior = self.prioris[cl] * likelihood_product
-            all_posteriors.append(posterior)
-
-        # Get the index of max posterior and return associated class
-        return self.classes[np.argmax(all_posteriors)]
-
     def __inputs_likelihood(self, nd_features, target_class):
         likelihood_product = 1
         for feature_index, x in enumerate(nd_features):
@@ -86,9 +45,6 @@ class NaiveBayes:
             likelihood_product *= likelihood
 
         return likelihood_product
-
-    def __get_likelihoods_map_key(self, target_class, nd_features):
-        return tuple([target_class] + nd_features)
 
     def train(self, train_X: np.ndarray, train_Y: np.ndarray):
         if len(train_X) <= 0:
@@ -137,37 +93,6 @@ class NaiveBayes:
             self.prioris[cl] = self.class_freq[cl] / len(train_Y)
 
         return True
-
-    def test(self, test_X: np.ndarray):
-        predictions = []
-
-        for nd_features in test_X:
-            prediction = self.__classify(nd_features)
-            predictions.append(prediction)
-
-        return predictions
-
-    def posterior_probabilities(self, test_X: np.ndarray, target_class: float):
-        if len(self.calculated_likelihoods) <= 0:
-            print("Please run test() first")
-            return []
-
-        posteriors = []
-
-        for nd_features in test_X:
-            map_key = self.__get_likelihoods_map_key(
-                target_class=target_class, nd_features=nd_features
-            )
-
-            posterior = (
-                self.prioris[target_class]
-                * self.calculated_likelihoods[map_key]
-                / self.__scaling_factor(nd_features=nd_features)
-            )
-
-            posteriors.append(posterior)
-
-        return posteriors
 
     def output(self, test_X: np.ndarray):
         output_data = {"predictions": [], "posteriors": []}
