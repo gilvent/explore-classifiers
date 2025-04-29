@@ -2,7 +2,7 @@ import numpy as np
 from classifiers.multinominal_logistic_regression import MultinominalLogisticRegression
 from evaluation.metrics import accuracy_score, macro_f1_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
-from utils.data_preprocess import shuffle_train_test_split
+from utils.data_preprocess import train_test_split
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
 
     classes = np.sort(np.unique(Y))
 
-    train_X, train_Y, test_X, test_Y = shuffle_train_test_split(
+    train_X, train_Y, test_X, test_Y = train_test_split(
         X=X, Y=Y, test_split_ratio=0.7, shuffle=True
     )
 

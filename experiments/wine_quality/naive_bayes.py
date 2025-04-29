@@ -2,7 +2,7 @@ import numpy as np
 from classifiers.naive_bayes import NaiveBayes
 from evaluation.metrics import accuracy_score, macro_f1_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
-from utils.data_preprocess import shuffle_train_test_split
+from utils.data_preprocess import train_test_split
 from utils.enums import FeatureType
 
 
@@ -34,7 +34,7 @@ def main():
     classifier = NaiveBayes(unique_classes=classes, feature_types=feature_types)
 
     # Fit training data to the model
-    train_X, train_Y, test_X, test_Y = shuffle_train_test_split(
+    train_X, train_Y, test_X, test_Y = train_test_split(
         X=X, Y=Y, test_split_ratio=0.3, shuffle=False
     )
     classifier.train(train_X=train_X, train_Y=train_Y)

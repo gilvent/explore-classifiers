@@ -2,7 +2,7 @@ import numpy as np
 from classifiers.logistic_regression import LogisticRegression
 from evaluation.metrics import accuracy_score, recall_score, precision_score, f1_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
-from utils.data_preprocess import shuffle_train_test_split
+from utils.data_preprocess import train_test_split
 from evaluation.roc_curve import print_roc_curve, predictions_by_threshold
 
 
@@ -22,7 +22,7 @@ def main():
 
     # Initialize the model
     classes = np.unique(Y)
-    train_X, train_Y, test_X, test_Y = shuffle_train_test_split(
+    train_X, train_Y, test_X, test_Y = train_test_split(
         X=X, Y=Y, test_split_ratio=0.3
     )
     weights = np.asarray([0 for _ in range(0, train_X.shape[1])])

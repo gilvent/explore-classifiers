@@ -2,7 +2,7 @@ import numpy as np
 from classifiers.naive_bayes import NaiveBayes
 from evaluation.metrics import accuracy_score, f1_score, recall_score, precision_score
 from evaluation.confusion_matrix import confusion_matrix, display_confusion_matrix
-from utils.data_preprocess import shuffle_train_test_split
+from utils.data_preprocess import train_test_split
 from utils.enums import FeatureType
 from evaluation.roc_curve import print_roc_curve, predictions_by_threshold
 
@@ -41,7 +41,7 @@ def main():
     classifier = NaiveBayes(unique_classes=classes, feature_types=feature_types)
 
     # Fit to the model
-    train_X, train_Y, test_X, test_Y = shuffle_train_test_split(X=X, Y=Y)
+    train_X, train_Y, test_X, test_Y = train_test_split(X=X, Y=Y)
     classifier.train(train_X=train_X, train_Y=train_Y)
 
     output = classifier.output(test_X=test_X)

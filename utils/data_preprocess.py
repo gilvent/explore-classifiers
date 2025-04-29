@@ -1,7 +1,7 @@
 import numpy as np
 from datetime import datetime
 
-def train_test_split(
+def balanced_train_test_split(
     X: np.ndarray, Y: np.ndarray, unique_classes, test_split_ratio=0.3
 ):
     train_X = []
@@ -9,7 +9,7 @@ def train_test_split(
     test_X = []
     test_Y = []
 
-    # Split for each class
+    # Split for each class to ensure similar distribution
     for c in unique_classes:
         c_indexes = np.where(Y == c)
         X_where_c = X[c_indexes]
@@ -25,19 +25,22 @@ def train_test_split(
     return (np.array(train_X), np.array(train_Y), np.array(test_X), np.array(test_Y))
 
 
-def shuffle_train_test_split(X: np.ndarray, Y: np.ndarray, test_split_ratio=0.3):
+def train_test_split(X: np.ndarray, Y: np.ndarray, test_split_ratio=0.3, shuffle = True):
     index = np.arange(X.shape[0])
-    np.random.shuffle(index)
-    shuffled_X = X[index]
-    shuffled_Y = Y[index]
+
+    if (shuffle == True):
+        np.random.shuffle(index)
+    
+    dataset_X = X[index]
+    dataset_Y = Y[index]
 
     test_data_count = int(test_split_ratio * X.shape[0])
     split_index = X.shape[0] - test_data_count
 
-    train_X = shuffled_X[:split_index]
-    train_Y = shuffled_Y[:split_index]
-    test_X = shuffled_X[split_index:]
-    test_Y = shuffled_Y[split_index:]
+    train_X = dataset_X[:split_index]
+    train_Y = dataset_Y[:split_index]
+    test_X = dataset_X[split_index:]
+    test_Y = dataset_Y[split_index:]
 
     return (train_X, train_Y, test_X, test_Y)
 
