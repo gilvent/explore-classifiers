@@ -3,13 +3,16 @@ import numpy as np
 
 class MultinominalLogisticRegression:
     """
-    Parameters
-    unique_classes: A vector containing unique classes
+    Parameters.
+
+    unique_classes: A vector containing unique classes.
+    
     weights: An (f, cl) matrix, where f = number of feature dimension, cl = number of classes
         The order of column (cl) should respect the order of unique classes.
         The order of row (f) should respect the order of features (columns of train_X passed to train() method)
+
     bias: A 1d vector of bias for each class
-        The class order should respect unique_classes
+        The class order should respect unique_classes.
     """
 
     def __init__(
